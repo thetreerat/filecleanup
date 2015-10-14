@@ -1,4 +1,5 @@
 import sys,os, getopt
+#from emailhelp import EmailHelp
 import smtplib
 
 def countbackups(path=""):
@@ -13,13 +14,15 @@ def countbackups(path=""):
         print("""%s Path not found """ % (path))
         return None
 
-def emailstatus(message='', sysopemail='hal@parkavebike.com'):
+def emailstatus(emailsettings, messagedata):
     server = None
-    try:
-        mailhost='localhost'
-        print(mailhost)
-        server = smtplib.SMTP(mailhost)
-        server.connect()
+    try:      
+        if 'mailhost' in emailsettings:
+            print(emailsettings['mailhost'])
+            server = smtplib.SMTP(emailsettings['mailhost'])
+            server.connect()
+        else:
+            print('No mailhost defined')
     except ConnectionRefusedError as e:
         print("No email sent, server refused connection")
         return
@@ -32,18 +35,28 @@ def emailstatus(message='', sysopemail='hal@parkavebike.com'):
         if server:
             server.quit
 
-def loadcommandlinevars():
+def loadcommandlinevars(commandline):
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hi:o:",["ifile=","ofile="])
-        for option, value in opts:
-            if option in ('-h', '-hostname'):
-                mailhost = value
-                print(mailhost)
-            elif option in ('-e', '-email'):
-                emailaddress=value
-    except getopt.GetoptError as e:
-        print(e)
+        emailsettings = {}
+        print("here")
+        opts, args = getopt.getopt(commandline, "h:e:p:", ["-hostname ",
+                                                            "-email ",
+                                                            "-port "])
+    except getopt.GetoptError:
+        print("Error")
+        #print(e)
         sys.exit(1)
+        
+    for option, value in opts:
+        if option in ('-h', '-hostname'):
+            emailsettings['mailhost'] = value
+            print(emailsettings['mailhost'])
+        elif option in ('-e', '-email'):
+            emailsettings['emailaddress']=value
+        elif option in ('-p', '-port'):
+            emailsettings['port']=value
+    
+    return emailsettings
     
 def mainscreenmessage(c=0, usb=0):
  
@@ -55,12 +68,15 @@ def mainscreenmessage(c=0, usb=0):
 
 if __name__ == '__main__':
     try:
-        print("Hello, on to more importan things")
-        loadcommandlinevars()
-        
+        m = "Hello, on to more importan things"
+        print(m)
+        emailsettings = loadcommandlinevars(sys.argv[1:])
         filecountc = countbackups(path="""c:\\users\\Harold\\Documents\\""")
         filecountusb = countbackups(path="""c:\\users\\Harold\\""")
-        mainscreenmessage(filecountc,filecountusb)
-        emailstatus()
+        #mainscreenmessage(filecountc,filecountusb)
+        messagedata = {'body':m,'subject':'test'}
+        #emailstatus(emailsettings, messagedata)
+        print(emailsettings)
+        print(messagedata)
     finally:
         print("Thank you for playing")
