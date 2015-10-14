@@ -1,5 +1,5 @@
 import sys,os, getopt
-#from emailhelp import EmailHelp
+import mailhelp
 import smtplib
 
 def countbackups(path=""):
@@ -17,9 +17,9 @@ def countbackups(path=""):
 def emailstatus(emailsettings, messagedata):
     server = None
     try:      
-        if 'mailhost' in emailsettings:
-            print(emailsettings['mailhost'])
-            server = smtplib.SMTP(emailsettings['mailhost'])
+        if not emailsettings.EmailHost=="":
+            print(emailsettings.EmailHost)
+            server = smtplib.SMTP(emailsettings.EmailHost)
             server.connect()
         else:
             print('No mailhost defined')
@@ -35,9 +35,9 @@ def emailstatus(emailsettings, messagedata):
         if server:
             server.quit
 
-def loadcommandlinevars(commandline):
+def loadcommandlinevars(commandline, emailsettings):
     try:
-        emailsettings = {}
+        
         print("here")
         opts, args = getopt.getopt(commandline, "h:e:p:", ["-hostname ",
                                                             "-email ",
@@ -49,13 +49,13 @@ def loadcommandlinevars(commandline):
         
     for option, value in opts:
         if option in ('-h', '-hostname'):
-            emailsettings['mailhost'] = value
-            print(emailsettings['mailhost'])
+            emailsettings.EmailHost = value
+            #print(emailsettings.EmailHost)
         elif option in ('-e', '-email'):
-            emailsettings['emailaddress']=value
+            emailsettings.EmailAddress=value
         elif option in ('-p', '-port'):
-            emailsettings['port']=value
-    
+            emailsettings.Port=value
+        #emailsettings.PrintValues()
     return emailsettings
     
 def mainscreenmessage(c=0, usb=0):
@@ -69,14 +69,15 @@ def mainscreenmessage(c=0, usb=0):
 if __name__ == '__main__':
     try:
         m = "Hello, on to more importan things"
+        emailsettings = mailhelp.MailHelp()
         print(m)
-        emailsettings = loadcommandlinevars(sys.argv[1:])
+        emailsettings = loadcommandlinevars(sys.argv[1:], emailsettings)
         filecountc = countbackups(path="""c:\\users\\Harold\\Documents\\""")
         filecountusb = countbackups(path="""c:\\users\\Harold\\""")
         #mainscreenmessage(filecountc,filecountusb)
         messagedata = {'body':m,'subject':'test'}
         #emailstatus(emailsettings, messagedata)
-        print(emailsettings)
+        emailsettings.PrintValues()
         print(messagedata)
     finally:
         print("Thank you for playing")
